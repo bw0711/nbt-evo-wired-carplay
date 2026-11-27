@@ -1,0 +1,2 @@
+upstream: https://github.com/JayJay3071/nbt-android-auto commit 78b098e1cffc3da5324a2b73870776c87850a5b4 (Wed Nov 25 21:29:48 2026 +0100)
+file: src/carplay/nbt_carplay_probe.c (GPL-3.0-only, Copyright (C) 2026 Valentin Radu)

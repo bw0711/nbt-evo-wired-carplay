@@ -1,0 +1,25 @@
+# Logs, captures and files pulled from a head unit: private (iPhone name, chip certificate,
+# BMW/Harman binaries). Never commit them.
+car/runs/
+runs/
+*.pcap
+*.h264
+*.der
+*.core
+
+# Copies of head-unit software (BMW/Harman/QNX): kept only on your own machine
+**/files-conn/
+conn-patch/conn_patch_tab.h
+
+# Third-party sources fetched by scripts/fetch-deps.sh, and build output
+upstream/
+.cache/
+out/
+
+# Mac host tests (built from test-host/*.c and *.c test files; see scripts/test-host.sh)
+nbt-carplay-evo/test-host/*
+!nbt-carplay-evo/test-host/*.c
+iap2-adapter/test_host
+*.dSYM/
+
+.DS_Store

@@ -1,0 +1,3 @@
+upstream: https://github.com/JayJay3071/nbt-android-auto commit 78b098e1cffc3da5324a2b73870776c87850a5b4 (Wed Nov 25 21:29:48 2026 +0100)
+folder: src/carplay (nbt_carplay, GPL-3.0-only, Copyright (C) 2026 Valentin Radu)
+lwIP 2.2.1 (77dcd25a) and Monocypher 4.0.2 (0d85f98c) as pinned in scripts/carplay_deps.py; Mbed TLS 3.6.7 as in probe-evo

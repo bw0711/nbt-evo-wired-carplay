@@ -1,0 +1,137 @@
+diff --git a/src/qemu/omap5-uevm.c b/src/qemu/omap5-uevm.c
+index 415cb3f..b597297 100644
+--- a/src/qemu/omap5-uevm.c
++++ b/src/qemu/omap5-uevm.c
+@@ -23,6 +23,8 @@
+ #include "hw/core/cpu.h"
+ #include "hw/display/omap5430_dss.h"   /* local addition (bmw-id6-apps): DSS/DMA from bimmulator, GPL-2.0-or-later */
+ #include "hw/dma/omap5430_sdma.h"
++#include "hw/usb/hcd-ehci.h"          /* local addition (bmw-id6-apps): OMAP5 USB host, IDEMU_USB=1 */
++#include "hw/usb/hcd-ohci.h"
+ #include "monitor/qdev.h"
+ #include <sys/socket.h>
+ #include <sys/un.h>
+@@ -353,6 +355,26 @@ static void omap5_uevm_init(MachineState *machine)
+         }
+     }
+ 
++    /* local addition (bmw-id6-apps): IDEMU_USB=1 adds the OMAP5 high-speed USB host that the firmware's own io-usb
++     * drives with devu-hb-ehci-omap3.so: EHCI at 0x4a064c00 (SPI 77 = OMAP irq 109) and its OHCI companion at
++     * 0x4a064800 (SPI 76), as in bimmulator's OMAP5430 board. The EHCI has id "ehci", so a host device goes on its bus
++     * with -device usb-host,bus=ehci.0,... (IDEMU_QEMU_EXTRA). The OMAP5 xHCI (DWC3, the car's console USB port) is not
++     * modelled: QNX's omap5-xhci driver does not run on QEMU's generic xHCI (bimmulator saw it crash in evtring_create).
++     * Off by default: the plain IDEmu board is unchanged. */
++    if (getenv("IDEMU_USB")) {
++        DeviceState *ehci = qdev_new(TYPE_PLATFORM_EHCI);
++        DeviceState *ohci = qdev_new(TYPE_SYSBUS_OHCI);
++        qdev_set_id(ehci, g_strdup("ehci"), &error_fatal);
++        object_property_set_bool(OBJECT(ehci), "companion-enable", true, &error_fatal);
++        sysbus_realize_and_unref(SYS_BUS_DEVICE(ehci), &error_fatal);
++        sysbus_mmio_map(SYS_BUS_DEVICE(ehci), 0, 0x4a064c00);
++        sysbus_connect_irq(SYS_BUS_DEVICE(ehci), 0, pic[77]);
++        object_property_set_str(OBJECT(ohci), "masterbus", SYS_BUS_EHCI(ehci)->ehci.bus.qbus.name, &error_fatal);
++        sysbus_realize_and_unref(SYS_BUS_DEVICE(ohci), &error_fatal);
++        sysbus_mmio_map(SYS_BUS_DEVICE(ohci), 0, 0x4a064800);
++        sysbus_connect_irq(SYS_BUS_DEVICE(ohci), 0, pic[76]);
++    }
++
+     /* UART3 (console) 16550, regshift 2, SPI 106 */
+     serial_mm_init(sysmem, 0x48020000, 2, pic[74], 48000000 / 16,
+                    serial_hd(0), DEVICE_LITTLE_ENDIAN);
+diff --git a/idemu/guest/boot.sh b/idemu/guest/boot.sh
+index bdfa348..c53ca65 100644
+--- a/idemu/guest/boot.sh
++++ b/idemu/guest/boot.sh
+@@ -47,6 +47,8 @@ echo IDEMU_STAGE services
+ ksh /fs/shim/rc.sh > /var/rc.log 2>&1
+ # local addition (bmw-id6-apps): real QNX Screen + LayerManagerService (environments with "real_graphics": true)
+ [ -f /fs/shim/realgfx/start.sh ] && { echo IDEMU_STAGE realgfx; ksh /fs/shim/realgfx/start.sh; }
++# local addition (bmw-id6-apps): the firmware's USB host stack (environments with USB on, see idemu/usb/start.sh)
++[ -f /fs/shim/usb/start.sh ] && { echo IDEMU_STAGE usb; ksh /fs/shim/usb/start.sh; }
+ echo IDEMU_STAGE hmi
+ [ "$HMI_DELAY" -gt 0 ] && sleep $HMI_DELAY
+ cd /opt/hmi
+diff --git a/idemu/builder.py b/idemu/builder.py
+index 58edee5..af20f87 100644
+--- a/idemu/builder.py
++++ b/idemu/builder.py
+@@ -371,6 +371,14 @@ def build_shim(env, os_istep, out, log=print):
+             if os.path.isfile(fp) and not f.startswith('.'):
+                 with open(fp, 'rb') as fh: magic = fh.read(4)
+                 t.add('/realgfx/' + f, 0o100755 if (f.endswith('.sh') or magic == b'\x7fELF') else 0o100644, fp, os.path.getsize(fp))
++    # local addition (bmw-id6-apps): USB on ("usb": true or IDEMU_USB=1) packs idemu/usb/* as /usb/*; boot.sh then starts io-usb
++    udir = os.path.join(HERE, 'usb')
++    if (env.get('usb') or os.environ.get('IDEMU_USB') == '1') and os.path.isdir(udir):
++        t.mkdir('/usb', 0o40775)
++        for f in sorted(os.listdir(udir)):
++            fp = os.path.join(udir, f)
++            if os.path.isfile(fp) and not f.startswith('.'):
++                t.add('/usb/' + f, 0o100755 if f.endswith('.sh') else 0o100644, fp, os.path.getsize(fp))
+     # local addition (bmw-id6-apps): idemu/plugins-car/<Name>/* becomes /carplug/<Name>/*; boot.sh copies it to /var/opt/hmi/data/ID5/Plugins/<Name>
+     cdir = os.path.join(HERE, 'plugins-car')
+     if os.path.isdir(cdir):
+diff --git a/idemu/runtime.py b/idemu/runtime.py
+index 25aed50..2262bfd 100644
+--- a/idemu/runtime.py
++++ b/idemu/runtime.py
+@@ -172,7 +172,9 @@ class Runtime:
+         return {'valid': self.snapshot_valid(), 'size': size, 'enabled': self.fast_boot_enabled()}
+ 
+     def fast_boot_enabled(self):
+-        return self.env.get('fast_boot', True) and not os.environ.get('IDEMU_NO_SNAPSHOT')
++        # local addition (bmw-id6-apps): no snapshots with USB on: a snapshot cannot carry a passed-through host device
++        return (self.env.get('fast_boot', True) and not os.environ.get('IDEMU_NO_SNAPSHOT')
++                and not self.env.get('usb') and os.environ.get('IDEMU_USB') != '1')
+ 
+     def drop_snapshot(self):
+         import shutil
+@@ -209,6 +211,13 @@ class Runtime:
+         if self.env.get('show_window'): env['GLHOST_SHOW'] = '1'
+         if self.env.get('real_graphics'):     # local addition (bmw-id6-apps): DSS model for the real Screen server, its scan-out to a frame file
+             env['IDEMU_DSS'] = '1'; env['IDEMU_DSS_FRAME'] = R + 'dss.rgb'
++        # local addition (bmw-id6-apps): USB on ("usb": true or IDEMU_USB=1): the OMAP5 EHCI in the board (omap5-uevm.c) and a
++        # host device on it, by default the Mac's iPhone (vendor 0x05ac; "usb_host" in env.json or IDEMU_USB_HOST picks another).
++        # macOS gives the iPhone's interfaces to QEMU only when QEMU runs as root (emulators/emu-usb-server.sh).
++        usb_on = bool(self.env.get('usb')) or os.environ.get('IDEMU_USB') == '1'
++        if usb_on:
++            env['IDEMU_USB'] = '1'
++            if os.geteuid() != 0: self.con.append('[idemu] USB: QEMU is not root, macOS will keep the iPhone\'s interfaces')
+         S = self.snap_dir + '/'
+         if resume: env['GLHOST_REPLAY'] = S + 'gl.rec'
+         if record:
+@@ -234,6 +243,8 @@ class Runtime:
+                      '-device', 'loader,file=%ssdb.img,addr=0x01000000' % I,
+                      '-device', 'loader,file=%sshim.img,addr=%#x' % (I, self._shim_addr()[0])]
+         args += shlex.split(os.environ.get('IDEMU_QEMU_EXTRA', ''))
++        if usb_on:
++            args += ['-device', 'usb-host,bus=ehci.0,' + (os.environ.get('IDEMU_USB_HOST') or self.env.get('usb_host') or 'vendorid=0x05ac')]
+         if self.env.get('real_graphics'):      # local addition (bmw-id6-apps): a second QMP for screendump of the DSS console (IDEmu keeps qmp.sock)
+             args += ['-qmp', 'unix:%sqmp2.sock,server=on,wait=off' % R]
+             # guest RAM in a shared file (guest physical 0x80000000 = file offset 0): the host copies the HMI frame
+diff --git a/idemu/usb/start.sh b/idemu/usb/start.sh
+new file mode 100644
+index 0000000..c1fae5f
+--- /dev/null
++++ b/idemu/usb/start.sh
+@@ -0,0 +1,21 @@
++#!/bin/ksh
++# local addition (bmw-id6-apps): the firmware's own USB host stack on the OMAP5 high-speed host (EHCI + OHCI companion),
++# for environments with USB on ("usb": true, or the server started with IDEMU_USB=1; QEMU then has the EHCI model).
++# Same driver and arguments as the car's /bin/start_usb.sh, without the omap5-xhci part (not modelled; see omap5-uevm.c).
++# A host device (an iPhone passed through from the Mac) shows up on /dev/io-usb/io-usb, as the car's devices do.
++# Log: /dev/shmem/usb.log
++L=/dev/shmem/usb.log
++R=/fs/sda0/repository/istep
++export LD_LIBRARY_PATH=$R/lib:$R/lib/dll:/lib:/lib/dll:/usr/lib:/opt/sys/lib
++echo "usb: starting io-usb (EHCI 0x4a064c00 irq 109)" > $L
++# The car's /tmp is a link to the RAM disk /fs/ram5; IDEmu has the link but no disk. A folder on /var (reset at every
++# IDEmu boot) stands in for it, so programs that work in /tmp (nbt_carplay) behave as on the car.
++[ -d /fs/ram5 ] || { mkdir -p /var/ram5 && ln -sP /var/ram5 /fs/ram5 && echo "usb: /fs/ram5 -> /var/ram5 (car-like /tmp)" >> $L; }
++$R/bin/io-usb -c -vvv -d hb-ehci-omap3 ioport=0x4a064c00,irq=109,verbose=5,num_itd=256,portd >> $L 2>&1 &
++n=0
++while [ ! -e /dev/io-usb/io-usb ] && [ $n -lt 20 ]; do sleep 1; n=$((n + 1)); done
++if [ ! -e /dev/io-usb/io-usb ]; then echo "usb: no /dev/io-usb/io-usb after 20 s" >> $L; exit 1; fi
++echo "usb: /dev/io-usb/io-usb after $n s" >> $L
++sleep 3
++$R/bin/usb >> $L 2>&1
++echo "usb: ready" >> $L
