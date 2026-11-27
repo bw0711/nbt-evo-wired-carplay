@@ -80,7 +80,7 @@ Each step writes its progress to stdout. Save it like this: `ssh nbt '/tmp/nbt_c
     - held by another process: after 5 s "the chip is in use … stopping", exit 1;
     - after it is released: it works again, and the other process can take it again.
   - `/tmp` in the guest leads to the RAM disk `/fs/ram5`, there is no `/fs/ram3` → the files will go to `/tmp`. Check the same in the car.
-- **IDEmu with USB and a real iPhone** (`wired-carplay/emu-usb/`, iPhone15,2, iOS 27.2.1):
+- **IDEmu with USB and a real iPhone** (`emu-usb/`, iPhone15,2, iOS 27.2.1):
   - `usb`: passes;
   - `usb carplay`: the iPhone reconnects with 6 configurations;
   - `lockdown`: passes on the second run, as intended;

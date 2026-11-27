@@ -11,7 +11,7 @@
  *   mm-ipod -> iPhone: StartNowPlayingUpdates 5000, StartCallStateUpdates 4154, StartCommunicationsUpdates 4157
  *   iPhone -> mm-ipod: NowPlayingUpdate 5001, CallStateUpdate 4155, CommunicationsUpdate 4158
  * Everything else from mm-ipod is logged once and dropped. Design and the head unit side:
- * wired-carplay/iap2-factory-re-2026-11-27.md.
+ * docs/research/iap2-factory-re-2026-11-27.md.
  *
  * Threads: ours reads the adapter and answers mm-ipod at once (its link wants acks within tens of ms). The iPhone's
  * link is a TLS stream read by cp_iap2.c's loop, so what goes to the iPhone is queued here and sent from that loop

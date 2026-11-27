@@ -7,7 +7,7 @@
  * iPhone announces no controller, so the bridge announces one in its name on tap0 (cp_ncm.c), with its address as
  * this head unit's own 172.16.226.1 and the port of the server here. When the request has been answered,
  * CarPlayStartSession goes to the iPhone (cp_iap2.c) and the iPhone comes to the factory receiver as over Wi-Fi.
- * Findings: wired-carplay/factory-like-device-list-re-2026-11-26.md (car 2026-11-26).
+ * Findings: docs/research/factory-like-device-list-re-2026-11-26.md (car 2026-11-26).
  */
 #include <netinet/in.h>
 #include <arpa/inet.h>

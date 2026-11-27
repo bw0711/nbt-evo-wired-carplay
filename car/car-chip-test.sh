@@ -1,6 +1,6 @@
 #!/bin/bash
 # One car session for the question the emulator cannot answer: does the iPhone take the NBT Evo's Apple chip for
-# wired CarPlay? Runs wired-carplay/probe-evo on the head unit. Nothing is written to the head unit's flash: the probe
+# wired CarPlay? Runs probe-evo on the head unit. Nothing is written to the head unit's flash: the probe
 # and every file it makes live in /dev/shmem (RAM, gone at the next restart); NBT_CP_FLAT=1 keeps the probe there.
 #
 # Before: ENET cable in the OBD port, ignition on, head unit booted. Open the SSH connection yourself (it asks for
@@ -36,7 +36,7 @@
 #                                 (make_pcm_ini.py); takes effect after the head unit restarts (ignition off/on)
 #   ./car-chip-test.sh pcm-revert    FLASH: the backup back in place (then restart the head unit)
 #   ./car-chip-test.sh iap2-check    read only: carplay.ini [iAP2] LibPath, the adapter's files and log
-#   ./car-chip-test.sh iap2-install  FLASH: wired-carplay/iap2-adapter in front of the current [iAP2] LibPath (it chains to
+#   ./car-chip-test.sh iap2-install  FLASH: iap2-adapter in front of the current [iAP2] LibPath (it chains to
 #                                 it); takes effect after a head unit restart. IAP2_FACTORY=1 before bridge-start then
 #                                 runs the bridge with --iap2-factory (with conn-apply w1 first: RAM)
 #   ./car-chip-test.sh iap2-uninstall  FLASH: the LibPath line back as it was
@@ -48,7 +48,7 @@
 #   ./car-chip-test.sh conn-pull     read only: copies of the running Connectivity and its libconn_carplay.so into
 #                                 runs/<date>/files-conn/ (head-unit code: they stay on this Mac), which
 #                                 conn-patch/build.sh needs to make its patch table
-#   ./car-chip-test.sh conn-check    read only: are patches c1/c2/w1 in the running Connectivity (wired-carplay/conn-patch)
+#   ./car-chip-test.sh conn-check    read only: are patches c1/c2/w1 in the running Connectivity (conn-patch)
 #   ./car-chip-test.sh conn-apply c1|c2|w1 ...   patch the RUNNING Connectivity (w1: its libconn_carplay.so) in RAM
 #                                 (flash untouched; a reboot undoes it)
 #   ./car-chip-test.sh conn-revert c1|c2|w1 ...  put the factory bytes back without a reboot
@@ -114,7 +114,7 @@ echo "== which medialaunch"; whence vdev-medialaunch evo-medialaunch' > "$R/chec
 
 do_push() {
     step "push the probe to $P"
-    [ -f "$PROBE" ] || { note "  no $PROBE: build it with wired-carplay/probe-evo/build.sh"; return 1; }
+    [ -f "$PROBE" ] || { note "  no $PROBE: build it with probe-evo/build.sh"; return 1; }
     local want got
     want=$(shasum -a 256 "$PROBE" | cut -d' ' -f1)
     run "cat > $P.part && mv $P.part $P && chmod 755 $P" < "$PROBE"
@@ -193,7 +193,7 @@ do_iphone_free() {   # the iPhone steps with the iPod handlers ended before each
     grep -a -i -E "ACP-I2C|medialaunch|iap2|ipod|carplay|dipo" "$R/sloginfo-after-iphone-free.txt" | tail -15 | cut -c1-200 | sed 's/^/  slog: /' | tee -a "$R/summary.txt"
 }
 
-# Phase 1 of the nbt_carplay port (wired-carplay/nbt-carplay-evo): a whole CarPlay session up to the picture, written
+# Phase 1 of the nbt_carplay port (nbt-carplay-evo): a whole CarPlay session up to the picture, written
 # to a file instead of the screen, no sound, no microphone. nbt_carplay ends the iPhone's iPod handlers itself.
 # Everything stays in RAM: the program in /dev/shmem, its state (pairing, AirPlay identity) and dumps under /tmp
 # (/fs/ram5). Afterwards the H.264 dump is pulled and one frame of it is saved as a PNG.
@@ -203,7 +203,7 @@ CPLOG=/dev/shmem/cp-bridge.log
 
 do_session() {
     step "session: push nbt_carplay to $CP"
-    [ -f "$CP_BIN" ] || { note "  no $CP_BIN: build it with wired-carplay/nbt-carplay-evo/build.sh"; return 1; }
+    [ -f "$CP_BIN" ] || { note "  no $CP_BIN: build it with nbt-carplay-evo/build.sh"; return 1; }
     local want got
     want=$(shasum -a 256 "$CP_BIN" | cut -d' ' -f1)
     run "rm -f $CP $CP.part; cat > $CP && chmod 755 $CP" < "$CP_BIN"   # /dev/shmem: no rename over a file; SHA checked below
@@ -310,7 +310,7 @@ do_pf_check() {
     fi
 }
 
-# The factory-like route (wired-carplay/factory-like-design-2026-11-26.md): nbt_carplay --bridge does USB, the CarPlay
+# The factory-like route (docs/research/factory-like-design-2026-11-26.md): nbt_carplay --bridge does USB, the CarPlay
 # request and the iAP2 authentication with the chip, then makes the iPhone's NCM link the head unit's interface tap0
 # (RAM only; removed when it ends) and sends no CarPlayStartSession: the factory Connectivity is to find the iPhone
 # there as over Wi-Fi. The iPhone: Bluetooth ON (paired with the car, wireless CarPlay on), Wi-Fi OFF.
@@ -393,7 +393,7 @@ do_bridge() {
 }
 
 # Read only: what the third-party nbt-aa installs into the factory CarPlay (Connectivity loads
-# /var/opt/nbt-aa/libnbt-aa-cp.so and hands it CDipo; wired-carplay/factory-like-device-list-re-2026-11-26.md), its
+# /var/opt/nbt-aa/libnbt-aa-cp.so and hands it CDipo; docs/research/factory-like-device-list-re-2026-11-26.md), its
 # logs, and the car's HMI binary (to match the HMI side of the "Apple CarPlay" entry to the car's build).
 do_nbt_aa_pull() {
     step "nbt-aa-pull (read only)"
@@ -423,7 +423,7 @@ do_trace() {
     note "  $(wc -l < "$f" | tr -d ' ') lines; iAP2 messages: $(grep -a -c -E '\[[0-9A-F]{4}\] [A-Za-z]' "$f" | tr -d ' ')"
 }
 
-# Uncompressed audio over the cable (wired-carplay/audio-pcm-re-2026-11-27.md): the receiver offers the iPhone only the
+# Uncompressed audio over the cable (docs/research/audio-pcm-re-2026-11-27.md): the receiver offers the iPhone only the
 # formats in [Audio] of the live carplay.ini (/var, made by Connectivity from /opt/conn/data/carplay/carplay.ini and
 # kept until the car's coding changes; nbt-aa edited its [iAP2] once). The car's file has only AAC, and over the cable
 # the iPhone opened no audio stream. pcm-apply keeps a backup beside it (carplay.ini.before-pcm, written once, never
@@ -474,7 +474,7 @@ do_pcm() {
     esac
 }
 
-# The iAP2 adapter (wired-carplay/iap2-adapter, iap2-factory-re-2026-11-27.md): the CarPlay plug-in loads the library in
+# The iAP2 adapter (iap2-adapter, docs/research/iap2-factory-re-2026-11-27.md): the CarPlay plug-in loads the library in
 # carplay.ini [iAP2] LibPath; ours stands in front of the one there now (the factory's, or nbt-aa's) and chains every
 # call to it, so wireless CarPlay and nbt-aa keep working. Files: /var/opt/nbt-cp/nbtcp_iap2_adapter.so and
 # /var/opt/nbt-cp/iap2-next (the LibPath it replaced). Only the LibPath line changes (make_iap2_ini.py); a whole-file
@@ -505,7 +505,7 @@ do_iap2() {
             | sed 's/^/  /' | tee -a "$R/summary.txt"
         ;;
     install)
-        [ -f "$ABIN" ] || { note "  no $ABIN: build it with wired-carplay/iap2-adapter/build.sh"; return 1; }
+        [ -f "$ABIN" ] || { note "  no $ABIN: build it with iap2-adapter/build.sh"; return 1; }
         old=$(python3 -I "$HERE/make_iap2_ini.py" "$R/carplay.ini.now" "$R/carplay.ini.iap2" "$ASO" 2>&1) || { note "  $old: nothing written"; return 1; }
         [ -n "${DRY:-}" ] || run "[ -f $old ]" < /dev/null || { note "  the library it names ($old) is not there: nothing written"; return 1; }
         note "  chaining to $old"
@@ -531,7 +531,7 @@ do_iap2() {
     esac
 }
 
-# Wired CarPlay without the laptop (wired-carplay/car/autostart/README.md): nbt_carplay --auto as a service. Files in
+# Wired CarPlay without the laptop (car/autostart/README.md): nbt_carplay --auto as a service. Files in
 # /var/opt/nbt-cp: nbt_carplay, conn_patch (w1 before each wired session), cpd.sh (the service loop), state/ (the pair
 # record: "Trust" once per iPhone), autostart (the flag: nbtcp_iap2_adapter.so starts cpd.sh at Connectivity's start).
 # auto-install copies the files (and the current adapter build; it takes effect at the next start of the head unit)
@@ -596,7 +596,7 @@ do_auto() {
     esac
 }
 
-# Patches c1/c2 in the running Connectivity (wired-carplay/conn-patch/README.md). conn_patch compares the whole function
+# Patches c1/c2 in the running Connectivity (conn-patch/README.md). conn_patch compares the whole function
 # around each patch with the car's binary first and writes nothing if anything differs; the write goes to the RAM page
 # behind the process's code (the file on flash is not touched) and is gone at the next restart, or after conn-revert.
 CPATCH_BIN=$HERE/../conn-patch/out/conn_patch
@@ -609,7 +609,7 @@ do_conn() {
     done
     if [ "$what" != check ] && [ $# -eq 0 ]; then note "  name the patches: $0 conn-$what c1|c2|w1 ..."; return 1; fi
     step "conn-$what: push conn_patch to $CPATCH"
-    [ -f "$CPATCH_BIN" ] || { note "  no $CPATCH_BIN: build it with wired-carplay/conn-patch/build.sh"; return 1; }
+    [ -f "$CPATCH_BIN" ] || { note "  no $CPATCH_BIN: build it with conn-patch/build.sh"; return 1; }
     want=$(shasum -a 256 "$CPATCH_BIN" | cut -d' ' -f1)
     run "rm -f $CPATCH; cat > $CPATCH && chmod 755 $CPATCH" < "$CPATCH_BIN"   # /dev/shmem: no rename over a file
     got=$(run "cat $CPATCH" < /dev/null | shasum -a 256 | cut -d' ' -f1)
@@ -635,7 +635,7 @@ do_conn_pull() {   # read only: the two binaries conn-patch/build.sh makes its t
             rm -f "$out"
         fi
     done
-    note "  next: wired-carplay/conn-patch/build.sh (it takes the newest runs/*/files-conn)"
+    note "  next: conn-patch/build.sh (it takes the newest runs/*/files-conn)"
 }
 
 do_cleanup() {

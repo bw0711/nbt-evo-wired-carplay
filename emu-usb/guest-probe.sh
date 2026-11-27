@@ -3,9 +3,9 @@
 # the step runs in the background in the guest with its output in /dev/shmem/probe-<step>.log, and this script
 # reads that file with short commands until the step has finished (or MAX seconds have passed).
 #
-#   wired-carplay/emu-usb/guest-probe.sh lockdown [MAX=180]
-#   wired-carplay/emu-usb/guest-probe.sh "usb carplay"
-#   NBT_ENV="NBT_ACP_NO_SIGN=1" wired-carplay/emu-usb/guest-probe.sh acp
+#   emu-usb/guest-probe.sh lockdown [MAX=180]
+#   emu-usb/guest-probe.sh "usb carplay"
+#   NBT_ENV="NBT_ACP_NO_SIGN=1" emu-usb/guest-probe.sh acp
 #
 # Needs the unit running (emulators/emu-usb-server.sh for USB) and the probe staged as
 # IDEmu/idemu/plugins-car/_tools/nbt_carplay_probe_evo (on the shim disk: /fs/shim/carplug/_tools/).

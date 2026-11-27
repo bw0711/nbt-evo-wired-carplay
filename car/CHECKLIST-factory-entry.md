@@ -1,11 +1,11 @@
 # Car visit: wired CarPlay "the factory way" - a 4-step plan
 
 Goal: factory CarPlay over the cable that the HMI treats as its own: an "Apple CarPlay" entry in the iDrive menu, with minimize and return.
-Why it works this way: `wired-carplay/factory-like-device-list-re-2026-11-26.md`. In short: this head unit's factory CarPlay is built around
+Why it works this way: `../docs/research/factory-like-device-list-re-2026-11-26.md`. In short: this head unit's factory CarPlay is built around
 Bluetooth. A session reaches the HMI only if, at that moment, Connectivity is connecting a phone it knows over Bluetooth.
 On 26.11 Bluetooth was off, so there was no entry. The main variant (step 1) has never been tried yet.
 
-Time: 25-30 minutes. Each step is one command in `wired-carplay/car/`, logs go to `car/runs/<date>/`, and the result is in `summary.txt`.
+Time: 25-30 minutes. Each step is one command in `car/`, logs go to `car/runs/<date>/`, and the result is in `summary.txt`.
 Nothing is written to flash. Everything that changes (firewall rules, the in-memory patch) lives in RAM and is removed at the end of the step
 or by rebooting the head unit.
 

@@ -6,7 +6,7 @@ Files: `car/runs/20261126-195127/files-conn/` — what is running in the car now
 Addresses:
 - `Connectivity` of the car: file offset = vaddr − 0x100000 (code and `.rodata`). The code addresses of the running and the original
   binary are the same: nbt-aa changed only two words in `.text` (item 5).
-- The addresses of this binary do not match 007_001_016 from `docs/connectivity-re-2026-11-26.md`. For example,
+- The addresses of this binary do not match 007_001_016 from `connectivity-re-2026-11-26.md`. For example,
   `updateControllerAdded`: 0x60959c there, 0x608cc4 here.
 - Important: `strings -t x` prints the file offset. The address of a string in Connectivity = offset + 0x100000.
 - `.so`: file offset = vaddr. Strings in the code are taken as `GOT + offset`; the GOT of `libconn_carplay.so` = 0x14fe8c.

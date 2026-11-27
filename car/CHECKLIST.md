@@ -1,7 +1,7 @@
 # Car: checking the MFi chip for wired CarPlay
 
 One session, about 20-30 minutes. Nothing is written to the head unit's flash: the probe and its files live in `/dev/shmem` (RAM) and disappear
-when the head unit restarts. Script: `wired-carplay/car/car-chip-test.sh`.
+when the head unit restarts. Script: `car/car-chip-test.sh`.
 
 ## Bring
 
@@ -29,7 +29,7 @@ when the head unit restarts. Script: `wired-carplay/car/car-chip-test.sh`.
 5. When the script asks: **you do not need to turn Bluetooth back on; plug the iPhone into USB, unlock it, and press Enter.**
 6. The iPhone shows **"Trust This Computer?" -> Trust, then enter the passcode.**
 7. At the end the script prints `summary: …/summary.txt`. That one line is enough for me. The logs are on the Mac in
-   `wired-carplay/car/runs/<date>/`.
+   `car/runs/<date>/`.
 
 You can also run the steps one at a time: `./car-chip-test.sh check | push | acp-read | acp-sign | iphone | cleanup`.
 If SSH drops (ControlPersist 300 s), repeat step 3 and continue from the step you need.

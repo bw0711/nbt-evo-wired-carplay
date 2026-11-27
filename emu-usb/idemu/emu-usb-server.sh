@@ -4,7 +4,7 @@
 #   sudo emulators/emu-usb-server.sh          (Ctrl-C stops it)
 #
 # Why root: macOS gives the iPhone's USB interfaces to QEMU (libusb) only when QEMU runs as root
-# (wired-carplay/emu-usb/README.md, test of 2026-11-26). IDEMU_USB=1 then adds the OMAP5 EHCI to the board
+# (emu-usb/README.md, test of 2026-11-26). IDEMU_USB=1 then adds the OMAP5 EHCI to the board
 # (IDEmu/src/qemu/omap5-uevm.c), packs idemu/usb/start.sh on the shim so the guest starts the firmware's own io-usb,
 # and puts a usb-host device for vendor 0x05ac on the EHCI (IDEMU_USB_HOST="vendorid=...,productid=..." picks another).
 # While a unit runs, macOS does not see the iPhone; it gets it back when the unit stops.

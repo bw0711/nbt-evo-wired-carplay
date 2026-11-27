@@ -30,7 +30,8 @@ and `nbt_carplay_probe`, Copyright (C) 2026 Valentin Radu <valentin.radu@valinet
 as published in JayJay3071/nbt-android-auto (<https://github.com/JayJay3071/nbt-android-auto>, folder
 `src/carplay/`, commit `78b098e1cffc3da5324a2b73870776c87850a5b4`). The upstream notices, including the authors'
 additional permissions, are kept unchanged in [nbt-carplay-evo/NOTICE-upstream.md](nbt-carplay-evo/NOTICE-upstream.md)
-and [probe-evo/NOTICE-upstream.md](probe-evo/NOTICE-upstream.md). The changes made here are listed in
+and [probe-evo/NOTICE-upstream.md](probe-evo/NOTICE-upstream.md); their relative links point to files of the upstream
+repository. The changes made here are listed in
 [README.md](README.md#how-it-works) and in each folder's README; `git log` has every change since this repository
 started.
 

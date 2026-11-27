@@ -32,7 +32,7 @@ The server runs in this window, Ctrl-C stops it. The iPhone is connected to the 
 - rebuild the environment `f30-business-24-03` (`POST /api/env/<id>/update`) and start it cold;
 - in the guest check `/dev/shmem/usb.log`: it must have `Product : 0x12a8 (iPhone)` and `usb: ready`.
 
-The probe steps go through `wired-carplay/emu-usb/guest-probe.sh <step>`. It runs the step in the guest in the background with a log in
+The probe steps go through `emu-usb/guest-probe.sh <step>`. It runs the step in the guest in the background with a log in
 `/dev/shmem/probe-<step>.log` and fetches the result with short commands, because the console bridge has a 30 s limit.
 **The order in the emulator:**
 

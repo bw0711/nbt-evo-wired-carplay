@@ -1,12 +1,12 @@
 # conn_patch: c1/c2 patches in the memory of the running Connectivity
 
-What the patches are and why: `../factory-like-device-list-re-2026-11-26.md`, section 4c. In short:
+What the patches are and why: `../docs/research/factory-like-device-list-re-2026-11-26.md`, section 4c. In short:
 - **c1** (0x603e70, 4 bytes): a session started by the iPhone becomes "active" in any state of Connectivity,
   not only when it is itself waiting for a phone.
 - **c2** (0x608d4c, 12 bytes): the found CarPlay "controller" is remembered as the phone's address, instead of being compared with the
   Bluetooth address. Without Bluetooth the factory connection chain would not start.
 - **w1** (`libconn_carplay.so` 0x294a8, 4 bytes): the CarPlay module starts the factory iAP2 driver (`mm-ipod`) also for a
-  cable session, not only for Wi-Fi/WFD (`../iap2-factory-re-2026-11-27.md`, `../iap2-adapter`). The patch is in the
+  cable session, not only for Wi-Fi/WFD (`../docs/research/iap2-factory-re-2026-11-27.md`, `../iap2-adapter`). The patch is in the
   library: the base is taken from procfs (the mapping address − its address inside the library by `DCMD_PROC_MAPDEBUG`;
   IDEmu 2026-11-27: MAPDEBUG returns the ELF address, not the base — found on the bench). On the Mac: `--lib <copy of the library>`.
 

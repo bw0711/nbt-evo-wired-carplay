@@ -3,8 +3,8 @@
 # in the guest with its output in /dev/shmem/run-<tag>.log, and this script reads that file with short commands until
 # the command has finished (or MAX seconds have passed), then prints it.
 #
-#   wired-carplay/emu-usb/guest-run.sh TAG "COMMAND" [MAX=180]
-#   wired-carplay/emu-usb/guest-run.sh cp-iap2 "NBT_ACP_CERT_FILE=/fs/shim/carplug/_tools/acp-cert.der \
+#   emu-usb/guest-run.sh TAG "COMMAND" [MAX=180]
+#   emu-usb/guest-run.sh cp-iap2 "NBT_ACP_CERT_FILE=/fs/shim/carplug/_tools/acp-cert.der \
 #       /fs/shim/carplug/_tools/nbt_carplay --stop-after iap2 --fifo none --no-audio --no-mic" 240
 set -u
 TAG=${1:?tag}

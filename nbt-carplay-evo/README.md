@@ -5,7 +5,7 @@ Upstream and commits: `UPSTREAM.txt`; licence: `LICENSE-GPL-3.0.txt` and `NOTICE
 **GPL code: keep it separate from the paid apps.**
 
 Basis: on 2026-11-26 in the car the probe passed iAP2 authentication with the Evo chip, and the iPhone sent `CarPlayAvailability`
-(`wired-carplay/car/RESULT-2026-11-26.md`).
+(`car/RESULT-2026-11-26.md`).
 
 > **State on 2026-11-27.** The working mode is `--auto` (a service, `../car/autostart/README.md`): the `--bridge-start` bridge
 > to the head unit's factory receiver, PCM audio, iAP2 for the instrument cluster (`--iap2-factory`). Stage 2 below (our own video and audio output) was not
@@ -41,7 +41,7 @@ Basis: on 2026-11-26 in the car the probe passed iAP2 authentication with the Ev
 - The imports are checked against QNX 6.5's `libc.so.3`, `libusbdi.so.2` and `libsocket.so.3`.
 - 2026-11-26: builds without warnings, the import check passed.
 - **2026-11-26 20:08, car: stage 1 passed on the first run.** A full CarPlay session: H.264 1280×480, 614 frames
-  in 20 s. Details: `wired-carplay/car/RESULT-2026-11-26.md`. The picture is not output to the head unit's screen: that does not exist yet
+  in 20 s. Details: `car/RESULT-2026-11-26.md`. The picture is not output to the head unit's screen: that does not exist yet
   (stage 2), it is only written to a file (`--dump`).
 
 ## Testing
@@ -49,11 +49,11 @@ Basis: on 2026-11-26 in the car the probe passed iAP2 authentication with the Ev
 - **IDEmu with an iPhone** (`../emu-usb/README.md`). It needs the server started with `sudo emulators/emu-usb-server.sh` and an iPhone
   connected to the Mac. The binary and the car's real chip certificate are already in `IDEmu/idemu/plugins-car/_tools/`.
   ```bash
-  wired-carplay/emu-usb/guest-run.sh cp-iap2 "NBT_ACP_CERT_FILE=/fs/shim/carplug/_tools/acp-cert.der /fs/shim/carplug/_tools/nbt_carplay --stop-after iap2 --fifo none --no-audio --no-mic" 300
+  emu-usb/guest-run.sh cp-iap2 "NBT_ACP_CERT_FILE=/fs/shim/carplug/_tools/acp-cert.der /fs/shim/carplug/_tools/nbt_carplay --stop-after iap2 --fifo none --no-audio --no-mic" 300
   ```
   Expected: USB, pairing ("Trust?" on the iPhone), carkit, iAP2 identification. It stops at the signature: the emulator
   has no chip.
-- **The car:** `wired-carplay/car/car-chip-test.sh session`. It puts `nbt_carplay` in `/dev/shmem` and runs
+- **The car:** `car/car-chip-test.sh session`. It puts `nbt_carplay` in `/dev/shmem` and runs
   `--stop-after video --fifo none --no-audio --no-mic --dump /tmp/cp-session.h264 --pcap …`. Then it fetches the dump and the pcap
   and on the Mac saves a frame as a PNG (`cp-session-frame.png`). Nothing is written to flash; `cleanup` removes everything from RAM.
 

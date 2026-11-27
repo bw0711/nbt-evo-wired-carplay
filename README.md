@@ -1,19 +1,56 @@
-# nbt-evo-wired-carplay
+<p align="center">
+  <img src="docs/assets/banner.svg" alt="nbt-evo-wired-carplay: wired Apple CarPlay for the BMW NBT Evo, through the head unit's own receiver" width="100%">
+</p>
 
-Wired (USB) Apple CarPlay for the BMW **NBT Evo (ID6)** head unit, through the head unit's **own** CarPlay receiver.
-Plug the iPhone in with its cable and you get the factory CarPlay screen, the "Apple CarPlay" entry in iDrive,
-uncompressed sound, Siri with the car's microphone, the steering-wheel keys, and the track on the cluster and the
-head-up display. Wireless CarPlay stays exactly as it was.
+<p align="center">
+  <a href="LICENSE"><img alt="License: GPL-3.0-only" src="https://img.shields.io/badge/license-GPL--3.0--only-blue"></a>
+  <img alt="Head unit: NBT Evo ID6" src="https://img.shields.io/badge/head%20unit-NBT%20Evo%20ID6-1d3557">
+  <img alt="Tested firmware: NBTevo_N18032I" src="https://img.shields.io/badge/tested-NBTevo__N18032I-2a9d8f">
+  <img alt="Tested on iOS 27.2.1" src="https://img.shields.io/badge/iOS-27.2.1-2a9d8f">
+  <img alt="Status: works on one car" src="https://img.shields.io/badge/status-works%20on%20one%20car-e9c46a">
+</p>
 
-> **Status (2026-11-27): works on one car.** It has been installed and used without a laptop on one NBT Evo
-> (firmware `NBTevo_N18032I`) with one iPhone (iPhone15,2, iOS 27.2.1). Nobody has tried it on another head unit
-> yet. Read [What is known not to work](#what-is-known-not-to-work) and [Rolling back](#rolling-back) first.
-> You use it at your own risk: a mistake on the head unit can make it restart, and you need SSH access to recover.
+<p align="center">
+  <b>Plug the iPhone in with its cable, get the factory CarPlay: the iDrive entry, uncompressed sound, Siri with the
+  car's microphone, the steering-wheel keys and the track on the cluster and HUD. Wireless CarPlay stays as it was.</b>
+</p>
+
+<p align="center">
+  <a href="#installing-for-a-person">Install</a> ·
+  <a href="#how-it-works">How it works</a> ·
+  <a href="#rolling-back">Roll back</a> ·
+  <a href="docs/README.md">Research notes</a> ·
+  <a href="CONTRIBUTING.md">Contribute</a>
+</p>
+
+## At a glance
+
+| | Over the cable | Notes |
+|---|:---:|---|
+| CarPlay on the head unit's screen, iDrive entry, iDrive controller | ✅ | the head unit's own receiver does it |
+| Uncompressed sound (PCM 44.1/48 kHz) | ✅ | wireless stays AAC |
+| Siri with the car's microphone | ✅ | PCM 24 kHz mono |
+| Steering-wheel track keys | ✅ | |
+| Track title and artist on the cluster and HUD | ✅ | needs patch `w1`; firmware-specific |
+| Starts by itself, no laptop; "Trust" once | ✅ | iPhone Wi-Fi off = wired, on = wireless |
+| Wireless CarPlay unchanged | ✅ | the service never touches a phone with Wi-Fi on |
+| nbt-aa's navigation arrows on the HUD | ❌ | not forwarded over the cable yet |
+| Other firmware than `NBTevo_N18032I`, other iPhones | ❓ | not tried yet: [send a car report](CONTRIBUTING.md#reporting-a-result-from-a-car) |
+
+> [!WARNING]
+> **Works on one car so far** (NBT Evo `NBTevo_N18032I`, iPhone15,2, iOS 27.2.1, 2026-11-27). It changes files on the
+> head unit's flash and code in its memory; every change has a backup and an undo, but a mistake can make the head
+> unit restart, and you need SSH access to recover. Read [Known limits](#known-limits) and
+> [Rolling back](#rolling-back) first. You use it at your own risk.
+
+<details>
+<summary><b>Contents</b></summary>
 
 - [Why](#why)
 - [How it was done](#how-it-was-done)
 - [How it works](#how-it-works)
 - [What it changes on the head unit](#what-it-changes-on-the-head-unit)
+- [Known limits](#known-limits)
 - [Dependencies](#dependencies)
 - [Installing: for a person](#installing-for-a-person)
 - [Installing: for an agent](#installing-for-an-agent)
@@ -23,6 +60,8 @@ head-up display. Wireless CarPlay stays exactly as it was.
 - [Documents](#documents)
 - [Contributing](#contributing)
 - [License](#license)
+
+</details>
 
 ## Why
 
@@ -42,6 +81,19 @@ let the head unit's own receiver do the picture, sound, microphone, knob and men
 ## How it was done
 
 Two days, from the firmware to a car that needs no laptop. The notes for each step are in [Documents](#documents).
+
+```mermaid
+timeline
+    title From firmware to "no laptop"
+    2026-11-26 home : firmware and prior art studied : probe ported to the Evo's Apple chip : iPhone over USB in the emulator
+    2026-11-26 car : chip signs, iAP2 accepted : first full session (to a file) : bridge to the factory receiver, no menu entry yet
+    2026-11-27 morning : factory CarPlay with the iDrive entry, no patches
+    2026-11-27 afternoon : PCM sound and Siri with the car's mic : track on the cluster and HUD
+    2026-11-27 evening : autostart service : every scenario without the laptop
+```
+
+<details>
+<summary><b>The story, step by step</b></summary>
 
 **2026-11-26, at home: firmware and emulator.** CarPlay-related files from six firmware builds (BMW PSdZData) were
 studied, along with the prior art. Valentin Radu's probe was ported to the Evo's Apple authentication chip, which is
@@ -81,7 +133,68 @@ restart with the cable in.
 
 Things learned the hard way are listed in [CONTRIBUTING.md](CONTRIBUTING.md#head-unit-facts-you-must-know).
 
+</details>
+
 ## How it works
+
+Our service only connects the cable to the head unit's **own** CarPlay receiver. The receiver does the picture, the
+sound, the microphone, the knob, the steering-wheel keys and the iDrive entry, exactly as it does for wireless CarPlay.
+
+```mermaid
+flowchart TB
+    iPhone["📱 <b>iPhone</b> on the USB cable"]
+    subgraph HU["NBT Evo head unit"]
+        chip[("Apple chip<br/>of the head unit")]
+        bridge["<b>nbt_carplay --auto</b><br/>our service"]
+        subgraph factory["factory software (Connectivity)"]
+            recv["CarPlay receiver<br/>AirPlay :7000"]
+            adapter["<b>nbtcp_iap2_adapter.so</b><br/>our iAP2 adapter"]
+            mmipod["mm-ipod<br/>iAP2 driver"]
+        end
+    end
+    subgraph car["what you get in the car"]
+        direction LR
+        screen["🖥️ screen<br/>iDrive entry · knob"]
+        sound["🔊 PCM sound<br/>🎙️ Siri mic · wheel keys"]
+        cluster["🏁 track<br/>on cluster and HUD"]
+    end
+
+    iPhone -- "USB: CarPlay mode (NCM network + iAP2)" --> bridge
+    chip -. "signs iAP2 authentication" .-> bridge
+    bridge -- "tap0 bridge, DHCP,<br/>CarPlayStartSession" --> recv
+    bridge -- "iAP2 device role<br/>127.0.0.1:47600" --> adapter
+    adapter --> mmipod
+    recv --> screen
+    recv --> sound
+    mmipod --> cluster
+```
+
+When the service takes the iPhone, and when it leaves it alone:
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant P as iPhone
+    participant S as nbt_carplay --auto
+    participant H as Head unit (Connectivity)
+    P->>S: plugged in
+    Note over S: touches nothing yet:<br/>charging, iPod, wireless stay as they are
+    H-->>S: log: "not found in available device list" (once a second)
+    alt the search lasts 6 s (the iPhone's Wi-Fi is off)
+        S->>H: patch w1 in RAM, pf pass rule for tap0
+        S->>P: USB CarPlay mode, pairing ("Trust" once), iAP2 with the head unit's chip
+        S->>H: CarPlayStartSession to the head unit's own receiver
+        H->>P: CarPlay session: screen, PCM sound, microphone, keys
+        P-->>H: "now playing" over iAP2, through the bridge and the adapter to mm-ipod
+        P->>S: unplugged
+        S->>H: pf rule removed, exit (cpd.sh starts the service again)
+    else wireless connects within 1–3 s (Wi-Fi on)
+        Note over S: the gate never opens: the cable only charges
+    end
+```
+
+<details>
+<summary><b>The same, step by step (text)</b></summary>
 
 ```
 iPhone ──USB──┬─ factory iPod handlers (vdev-medialaunch, io-fs-media -dipod …): ended for the session, respawned after
@@ -101,6 +214,8 @@ iPhone ──USB──┬─ factory iPod handlers (vdev-medialaunch, io-fs-medi
 factory receiver (Connectivity + libconn_carplay): picture, PCM sound, microphone, knob, steering-wheel keys, iDrive entry
 ```
 
+</details>
+
 | Piece | Folder | Runs | What it does |
 |---|---|---|---|
 | `nbt_carplay` | [`nbt-carplay-evo/`](nbt-carplay-evo/) | own process | USB, pairing, iAP2, NCM bridge, session start, `--auto` service logic. Port of Valentin Radu's `nbt_carplay` |
@@ -109,7 +224,10 @@ factory receiver (Connectivity + libconn_carplay): picture, PCM sound, microphon
 | `cpd.sh` | [`car/autostart/`](car/autostart/) | own process | restart loop for the service, with crash limits |
 | `car-chip-test.sh` | [`car/`](car/) | on the laptop | every install, check, test and rollback step, as named stages over SSH |
 
-Changes against upstream `nbt_carplay` (JayJay3071/nbt-android-auto `src/carplay` at 78b098e), by file:
+<details>
+<summary><b>Changes against upstream <code>nbt_carplay</code>, by file</b></summary>
+
+Upstream: JayJay3071/nbt-android-auto `src/carplay` at 78b098e.
 `cp_acp.c` (the Evo's chip: node, Harman `devctl`, shared lock with `acpd`),
 `cp_ncm.c` (bridge to `tap0`, DHCP, reading the receiver's mDNS, controller announcement),
 `nbt_carplay.c` (options `--bridge`, `--bridge-start`, `--bridge-ctrl`, `--auto`, `--iap2-factory`; fatal signals
@@ -120,6 +238,8 @@ and new `cp_iap2dev.c` (device role towards `mm-ipod`), new `cp_auto.c` (the ser
 new `cp_ctrl.c` (controller server), `cp_usb.c` (with `--auto`, the iPhone is not touched until the gate opens),
 `cp_audio.c` (`liba2i_client.so` from `/opt/mm/lib`), and `/fs/ram3` → `CP_RAM` in `cp_airplay.c`,
 `cp_lockdown.c` and `cp_mic.c`.
+
+</details>
 
 ## What it changes on the head unit
 
@@ -143,6 +263,21 @@ Safety nets that work without a laptop:
   beats a loop of dropouts;
 - `conn_patch` refuses if any byte of the function around the patch differs, for example after a firmware update.
   You then get CarPlay without track names.
+
+## Known limits
+
+- **One car so far:** `NBTevo_N18032I`, one iPhone (iPhone15,2, iOS 27.2.1). Other firmware may lose the track
+  names (see [Dependencies](#dependencies)).
+- **The head unit looks for the phone for about a minute after it starts.** If you plug the cable in later, choose
+  iDrive → Mobile devices → iPhone → "Apple CarPlay", or press "Retry" in the error window.
+- **The first "Trust"** can take longer than that minute while you answer on the iPhone; then press "Retry".
+- **One pairing record:** a second iPhone overwrites it with its own "Trust".
+- **Not forwarded over the cable yet:** nbt-aa's navigation arrows on the HUD, cover art, call control from the car,
+  the car's GPS to the iPhone.
+- **With the iPhone's Wi-Fi off**, the iPhone shows "Turn On Wi-Fi to Use Wireless CarPlay" while the head unit
+  first tries wireless.
+- **Not yet run on a car:** the bridge built from a clean clone (`57e9f8a0…`, see [Dependencies](#dependencies)) and
+  the stage `conn-pull`.
 
 ## Dependencies
 
@@ -262,6 +397,9 @@ service log says "cpd: started".
 
 Follow the person's steps above, with these rules. The rules come first, and a step is never worth breaking one.
 
+<details>
+<summary><b>Rules and the step-by-step sequence for AI agents</b></summary>
+
 **Rules**
 1. **FLASH stages need the owner's explicit "yes" for that stage, given at that moment.** A yes for one stage does
    not cover the next. The FLASH stages are `pcm-apply`, `pcm-revert`, `iap2-install`, `iap2-uninstall`,
@@ -310,6 +448,8 @@ Follow the person's steps above, with these rules. The rules come first, and a s
 
 At the end, give the owner the run folder `car/runs/<date-time>/` (it is private) and one line per step.
 
+</details>
+
 ## Rolling back
 
 Undo in the reverse order of installing, then restart the head unit:
@@ -349,22 +489,19 @@ previous adapter directly.
 | [`emu-usb/`](emu-usb/) | iPhone over USB in IDEmu: guest helpers, and the IDEmu patch in `idemu/` |
 | [`scripts/`](scripts/) | `fetch-deps.sh`, `build-all.sh`, `test-host.sh` |
 | [`tools/`](tools/) | reverse-engineering helpers (`annot.py`, `xref.py`, `dis.sh`, `swfl_pick.py`) |
-| [`docs/`](docs/) | the first day's research |
+| [`docs/`](docs/) | [index](docs/README.md), [`research/`](docs/research/) notes, the banner in `assets/` |
 
 ## Documents
 
-| Document | About |
-|---|---|
-| [docs/feasibility-2026-11-26.md](docs/feasibility-2026-11-26.md) | is wired CarPlay possible on the Evo: overview |
-| [docs/prior-art-2026-11-26.md](docs/prior-art-2026-11-26.md) | who did what before (nbt_carplay, other attempts) |
-| [docs/medialaunch-re-2026-11-26.md](docs/medialaunch-re-2026-11-26.md) | `vdev-medialaunch`, the USB role switch |
-| [docs/connectivity-re-2026-11-26.md](docs/connectivity-re-2026-11-26.md) | how `Connectivity` finds a CarPlay phone |
-| [evo-aa-video-path-2026-11-26.md](evo-aa-video-path-2026-11-26.md) | how Android Auto/CarPlay video reaches the screen on the Evo |
-| [factory-like-design-2026-11-26.md](factory-like-design-2026-11-26.md) | design of the "factory-like" path |
-| [factory-like-device-list-re-2026-11-26.md](factory-like-device-list-re-2026-11-26.md) | where the iDrive entry comes from (DipoState, BT address) |
-| [audio-pcm-re-2026-11-27.md](audio-pcm-re-2026-11-27.md) | why the sound stayed on the phone, and the PCM lines |
-| [iap2-factory-re-2026-11-27.md](iap2-factory-re-2026-11-27.md) | the factory iAP2 path to the cluster, and why `w1` |
-| [car/RESULT-2026-11-26.md](car/RESULT-2026-11-26.md) … [car/RESULT-2026-11-27-evening.md](car/RESULT-2026-11-27-evening.md) | what happened at each car visit |
+The full index with dates is [docs/README.md](docs/README.md). The most useful ones:
+
+- [Where the iDrive entry comes from](docs/research/factory-like-device-list-re-2026-11-26.md): DipoState and the
+  Bluetooth address, patches c1/c2.
+- [Why the sound stayed on the phone](docs/research/audio-pcm-re-2026-11-27.md), and the PCM lines that fix it.
+- [How "now playing" reaches the cluster](docs/research/iap2-factory-re-2026-11-27.md), and why the adapter and `w1`.
+- [Who tried what before](docs/research/prior-art-2026-11-26.md).
+- What happened at each car visit: [26.11](car/RESULT-2026-11-26.md), [27.11 morning](car/RESULT-2026-11-27.md),
+  [27.11 afternoon](car/RESULT-2026-11-27-pm.md), [27.11 evening](car/RESULT-2026-11-27-evening.md).
 
 ## Contributing
 

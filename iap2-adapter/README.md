@@ -1,6 +1,6 @@
 # nbtcp_iap2_adapter: the head unit's factory iAP2 for wired CarPlay
 
-Why and how it works on the head unit side: `../iap2-factory-re-2026-11-27.md`. In short: the instrument cluster, the HUD and "Media" get
+Why and how it works on the head unit side: `../docs/research/iap2-factory-re-2026-11-27.md`. In short: the instrument cluster, the HUD and "Media" get
 "now playing", calls and the rest from the factory `mm-ipod` driver, which talks to the iPhone over iAP2 **inside** the wireless
 AirPlay session. Over the cable the iPhone runs iAP2 over USB, with our bridge. This library and the bridge's `--iap2-factory`
 connect the factory `mm-ipod` to the bridge, and the bridge answers it in place of the iPhone.

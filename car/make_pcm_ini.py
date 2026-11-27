@@ -5,7 +5,7 @@ The head unit's CarPlay receiver offers the iPhone only the audio formats listed
 /var/opt/conn/carplay/carplay.ini. The car's file lists only AAC-ELD / AAC-LC (the wireless set), and over the cable
 the iPhone opens no audio stream at all (car 2026-11-27). This adds uncompressed 16-bit PCM lines - the wired set the
 working upstream receiver offers (xcertplay CarPlayAudioFormats) - and keeps every existing line, so wireless keeps its
-AAC. RE of the parser: wired-carplay/audio-pcm-re-2026-11-27.md.
+AAC. RE of the parser: docs/research/audio-pcm-re-2026-11-27.md.
 
 Parser facts the lines rely on (libconn_carplay.so CCarPlayServiceCore::readConfig):
   Stream: MainAudio (100) | AltAudio (101) | MainHighAudio (102); Type: any string, one format mask per Type

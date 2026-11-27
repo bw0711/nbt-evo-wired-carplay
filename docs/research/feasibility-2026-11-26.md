@@ -18,7 +18,7 @@ The probe on the car went through the whole chain up to `CarPlayAvailability` (`
 
 We had to terminate the iPod handlers for this iPhone that `vdev-medialaunch` starts. The head unit stays fine.
 `vdev-medialaunch` on the car matches 007_001_016 byte for byte. Details:
-[wired-carplay/car/RESULT-2026-11-26.md](wired-carplay/car/RESULT-2026-11-26.md). Path B is confirmed, the next
+[car/RESULT-2026-11-26.md](../../car/RESULT-2026-11-26.md). Path B is confirmed, the next
 stage is the full port of `nbt_carplay`.
 
 ## Update 26.11, late evening: other people's work

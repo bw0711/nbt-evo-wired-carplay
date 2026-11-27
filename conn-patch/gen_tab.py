@@ -28,7 +28,7 @@ PATCHES = [
      None, 0x608cc4, 0x608d84, 0x608d4c, bytes.fromhex("0600a0e1" "0510a0e1" "91a8eceb")),
     # libconn_carplay.so CCarPlayServiceCore::handleSessionStart: `bne` past "adapter->setup(); startWLANDriver" for
     # every transport but WiFi / WFD -> nop: the factory iAP2 driver also starts for a wired session
-    # (wired-carplay/iap2-factory-re-2026-11-27.md)
+    # (docs/research/iap2-factory-re-2026-11-27.md)
     ("w1", "the factory iAP2 driver starts for a wired session too (handleSessionStart: no WiFi/WFD check)",
      "libconn_carplay.so", 0x293ac, 0x294e0, 0x294a8, bytes.fromhex("0000a0e1")),
 ]

@@ -5,7 +5,7 @@
  * iAP2 driver (mm-ipod, OSCAR package CONN_CARPLAY_WLAN_DRIVER) talks through; whatever mm-ipod writes there goes to
  * send() (into the AirPlay session: wireless CarPlay carries iAP2 inside AirPlay) and the iPhone's answers come back
  * through messageReceived(). Over the cable the iPhone keeps iAP2 on USB (with nbt_carplay's bridge), so the factory
- * gets no "now playing", calls, location... (wired-carplay/iap2-factory-re-2026-11-27.md).
+ * gets no "now playing", calls, location... (docs/research/iap2-factory-re-2026-11-27.md).
  *
  * This library stands in front of the adapter it replaces (the next one: the factory libconn_iap2_wifi_qnx.so, or a
  * third-party adapter already in LibPath) and passes every call on to it unchanged, with one difference: the send()

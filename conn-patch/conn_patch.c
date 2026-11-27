@@ -13,7 +13,7 @@
  * the new bytes for revert. If any selected patch is in an unknown state, nothing is written at all. After a write the
  * function is read back; if it does not read as expected, the original bytes are written back.
  *
- * Patches and why: wired-carplay/factory-like-device-list-re-2026-11-26.md (section 4c) and RESULT notes.
+ * Patches and why: docs/research/factory-like-device-list-re-2026-11-26.md (section 4c) and RESULT notes.
  */
 #include <ctype.h>
 #include <dirent.h>

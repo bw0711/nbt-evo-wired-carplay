@@ -1,6 +1,6 @@
 # Next car visit: uncompressed audio (PCM) and iAP2 for the instrument cluster over the cable
 
-Why and what exactly: `wired-carplay/audio-pcm-re-2026-11-27.md`. In short: the head unit's receiver offers the iPhone only the formats
+Why and what exactly: `../docs/research/audio-pcm-re-2026-11-27.md`. In short: the head unit's receiver offers the iPhone only the formats
 from `[Audio]` in `/var/opt/conn/carplay/carplay.ini`. Right now it has only AAC (the wireless set), and over the cable the iPhone does not open
 audio. The edit adds 16-bit PCM lines (the wired CarPlay set); the AAC lines stay.
 
@@ -30,7 +30,7 @@ Time: ~25 minutes for PCM (parts 0-3) and ~30 minutes for iAP2 (part 4, one more
 - Wireless CarPlay connects. Play music, press "next track" on the steering wheel, and look at the track title on the head-up display (HUD);
   if convenient, make a short call. Siri from the steering wheel.
 - In the recording: the head unit's identification to the iPhone (`IdentificationInformation`), which iAP2 messages go with the buttons and the call,
-  and which audio format the iPhone chose (`Audio SETUP received … Audio Format: …`). Analysis: `wired-carplay/iap2-factory-re-2026-11-27.md`.
+  and which audio format the iPhone chose (`Audio SETUP received … Audio Format: …`). Analysis: `../docs/research/iap2-factory-re-2026-11-27.md`.
 
 ## 3. Cable
 1. Wi-Fi on the iPhone is off in Settings, the cable is in USB, and in "Mobile devices" the iPhone is set to "Apple CarPlay".
@@ -42,7 +42,7 @@ Time: ~25 minutes for PCM (parts 0-3) and ~30 minutes for iAP2 (part 4, one more
    `ButtonInput` of the AirPlay session, not through iAP2.) We do not yet expect the track title in the cluster/HUD over the cable.
 
 ## 4. iAP2: the track in the cluster and on the HUD over the cable (after PCM is verified)
-What and why: `wired-carplay/iap2-factory-re-2026-11-27.md`, `wired-carplay/iap2-adapter/README.md`. A write to flash happens
+What and why: `../docs/research/iap2-factory-re-2026-11-27.md`, `iap2-adapter/README.md`. A write to flash happens
 only with the "yes" at the car: the library, the path of the next adapter, the LibPath line. While the adapter is installed, it writes a start counter itself
 (two short writes per head unit boot). The adapter lives in Connectivity; if two starts in a row did not last
 2 minutes, the head unit gets the previous adapter directly, as before the installation.
